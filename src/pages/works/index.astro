@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/url';
+import { t } from '../../i18n';
+
+const works = (await getCollection('works')).sort((a, b) => {
+	const orderA = a.data.order ?? Number.MAX_SAFE_INTEGER;
+	const orderB = b.data.order ?? Number.MAX_SAFE_INTEGER;
+	if (orderA !== orderB) return orderA - orderB;
+	return b.data.publishDate.valueOf() - a.data.publishDate.valueOf();
+});
+---
+
+<BaseLayout title={t('works.title')} description="项目">
+	<section class="page-head section">
+		<p class="eyebrow">{t('works.eyebrow')}</p>
+		<h1>项目</h1>
+	</section>
+
+	<section class="section" aria-label={t('works.listLabel')}>
+		<div class="work-list">
+			{
+				works.map((work) => (
+					<article class="work-card">
+						<p class="entry-meta">{work.data.tech.join(' / ')}</p>
+						<h2>
+							<a href={withBase(`/works/${work.id}/`)}>{work.data.title}</a>
+						</h2>
+						<p>{work.data.description}</p>
+					</article>
+				))
+			}
+		</div>
+	</section>
+</BaseLayout>

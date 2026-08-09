@@ -1,49 +1,27 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
-import Header from '@/components/common/Header.astro';
-import Footer from '@/components/common/Footer.astro';
-import Button from '@/components/ui/Button.astro';
-import Container from '@/components/ui/Container.astro';
-import { withBase } from '@/lib/url';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StructuredData from '../components/StructuredData.astro';
+import { withBase } from '../lib/url';
+import { SITE } from '../consts';
+
+const site = Astro.site ?? new URL(Astro.url.origin);
+const websiteSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'WebSite',
+	name: SITE.title,
+	description: SITE.description,
+	url: new URL(withBase('/'), site).href,
+};
 ---
 
-<BaseLayout title="zjx">
-	<Header />
-
-	<main id="main" tabindex="-1">
-		<section class="home-hero home-hero--minimal">
-			<Container size="xl">
-				<h1>zjx</h1>
-				<div class="home-hero__actions">
-					<Button href={withBase('/shiji/')} variant="solid" size="lg">史记</Button>
-					<Button href={withBase('/work/')} variant="outline" size="lg">项目</Button>
-					<Button href={withBase('/blog/')} variant="outline" size="lg">笔记</Button>
-				</div>
-			</Container>
-		</section>
-	</main>
-
-	<Footer />
+<BaseLayout description={SITE.description}>
+	<StructuredData slot="head" schema={websiteSchema} />
+	<section class="hero section">
+		<h1>zjx</h1>
+		<div class="action-row" aria-label="入口">
+			<a class="button" href={withBase('/shiji/')}>史记</a>
+			<a class="text-link" href={withBase('/works/')}>项目</a>
+			<a class="text-link" href={withBase('/blog/')}>笔记</a>
+		</div>
+	</section>
 </BaseLayout>
-
-<style>
-	.home-hero--minimal {
-		min-height: min(72vh, 720px);
-		display: grid;
-		align-items: center;
-		padding: 4rem 0 5rem;
-	}
-
-	.home-hero--minimal h1 {
-		margin: 0 0 1.5rem;
-		font-size: clamp(3rem, 10vw, 5.5rem);
-		letter-spacing: 0.04em;
-		line-height: 1;
-	}
-
-	.home-hero__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-	}
-</style>

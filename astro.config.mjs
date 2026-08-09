@@ -1,39 +1,27 @@
+// @ts-check
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
-import pagefind from 'astro-pagefind';
-import siteConfig from './src/site.config.ts';
+import sitemap from '@astrojs/sitemap';
+import { unified } from '@astrojs/markdown-remark';
+import { remarkReadingTime } from './remark-reading-time.mjs';
 
+// https://astro.build/config
 export default defineConfig({
 	site: 'https://zzjxing.github.io',
 	base: '/zhangjiaxing-site',
-	integrations: [
-		mdx(),
-		...(siteConfig.features.sitemap ? [sitemap()] : []),
-		...(siteConfig.features.search ? [pagefind()] : []),
-	],
-	output: 'static',
+	integrations: [mdx(), sitemap()],
 	trailingSlash: 'always',
-	build: {
-		format: 'directory',
-		inlineStylesheets: 'auto',
-	},
-	vite: {
-		build: {
-			cssMinify: true,
+	markdown: {
+		processor: unified({
+			remarkPlugins: [remarkReadingTime],
+		}),
+		shikiConfig: {
+			themes: {
+				light: 'github-light',
+				dark: 'github-dark',
+			},
+			defaultColor: false,
+			wrap: true,
 		},
-	},
-	image: {
-		service: {
-			entrypoint: 'astro/assets/services/sharp',
-		},
-		format: ['avif', 'webp'],
-	},
-	server: {
-		port: 3000,
-		host: true,
-	},
-	devToolbar: {
-		enabled: false,
 	},
 });

@@ -1,31 +1,27 @@
 import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
 import type { APIContext } from 'astro';
-import { getPublishedPosts } from '@/lib/posts';
-import { withBase } from '@/lib/url';
-import siteConfig, { resolvedOgLocale } from '@/site.config';
+import { withBase } from '../lib/url';
+import { SITE } from '../consts';
+import { locale } from '../i18n';
 
 export async function GET(context: APIContext) {
-  const posts = await getPublishedPosts();
-
-  // context.site is astro.config's `site` (no base). @astrojs/rss uses this
-  // for the channel <link>, so the base must be appended here or the feed's
-  // homepage points at the origin root instead of the project site.
-  const site = context.site
-    ? new URL(import.meta.env.BASE_URL, context.site)
-    : siteConfig.url;
+  const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf(),
+  );
 
   return rss({
-    title: `${siteConfig.name} — Blog`,
-    description: siteConfig.description,
-    site,
+    title: SITE.title,
+    description: SITE.rssDescription,
+    site: context.site ?? 'https://example.com',
+    // Feed readers use <language> to pick a reading direction and hyphenation.
+    customData: `<language>${locale}</language>`,
     items: posts.map((post) => ({
       title: post.data.title,
       description: post.data.description,
-      pubDate: post.data.pubDate,
+      pubDate: post.data.publishDate,
       link: withBase(`/blog/${post.id}/`),
       categories: post.data.tags,
-      author: post.data.author,
     })),
-    customData: `<language>${resolvedOgLocale.toLowerCase().replace('_', '-')}</language>`,
   });
 }
