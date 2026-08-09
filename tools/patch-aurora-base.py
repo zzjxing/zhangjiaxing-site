@@ -1,6 +1,7 @@
 """Rewrite Aurora SPA absolute paths for GitHub project Pages (subdir root)."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +14,19 @@ def patch_text(text: str) -> str:
 	text = text.replace('baseURL:"/api"', f'baseURL:"{BASE}/api"')
 	text = text.replace('baseURL:"/api/"', f'baseURL:"{BASE}/api"')
 	text = text.replace('history:m4("/")', f'history:m4("{BASE}/")')
+
+	# Vite preload helper is originally: function(e){return"/"+e}
+	# After we rewrite deps to "/zhangjiaxing-site/static/...", that becomes
+	# "//zhangjiaxing-site/..." (protocol-relative → wrong host → long hang).
+	# Make the helper idempotent for already-absolute paths.
+	text = text.replace(
+		'E7=function(e){return"/"+e.replace(/^\\//,"")}',
+		'E7=function(e){return"/"+e}',
+	)
+	text = text.replace(
+		'E7=function(e){return"/"+e}',
+		'E7=function(e){return"/"+e.replace(/^\\//,"")}',
+	)
 
 	# Default covers / lazy assets baked into the SPA bundle
 	# Avoid double-prefixing if patch is re-run.
@@ -32,6 +46,19 @@ def patch_text(text: str) -> str:
 	text = text.replace('"static/css/', f'"{BASE}/static/css/')
 	text = text.replace('"__BASE_STATIC_JS__/', f'"{BASE}/static/js/')
 	text = text.replace('"__BASE_STATIC_CSS__/', f'"{BASE}/static/css/')
+
+	# Occasional broken leftover: "static//886a749e.css" (file lives at static/*.css)
+	text = re.sub(
+		rf'"static//([^"]+\.css)"',
+		rf'"{BASE}/static/\1"',
+		text,
+	)
+	# If a previous patch wrongly nested that file under static/css/, put it back.
+	text = re.sub(
+		rf'"{re.escape(BASE)}/static/css/(886a749e\.css)"',
+		rf'"{BASE}/static/\1"',
+		text,
+	)
 
 	# CSS url(/static/...) inside bundles
 	text = text.replace(f'url({BASE}/static/', 'url(__BASE_STATIC__/')
