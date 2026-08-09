@@ -1,0 +1,26 @@
+---
+interface Props {
+	prev?: { title: string; href: string } | null;
+	next?: { title: string; href: string } | null;
+	indexHref: string;
+}
+
+const { prev, next, indexHref } = Astro.props;
+---
+
+<nav class="chapter-nav" aria-label="章节导航">
+	{
+		prev ? (
+			<a href={prev.href}>← 上一篇：{prev.title}</a>
+		) : (
+			<a href={indexHref}>📚 回目录</a>
+		)
+	}
+	{
+		next ? (
+			<a href={next.href}>下一篇：{next.title} →</a>
+		) : (
+			<a href={indexHref}>📚 回目录</a>
+		)
+	}
+</nav>

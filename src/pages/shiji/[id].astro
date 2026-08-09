@@ -1,0 +1,46 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ChapterNav from '../../components/ChapterNav.astro';
+
+export async function getStaticPaths() {
+	const chapters = (await getCollection('shiji')).sort((a, b) => a.data.order - b.data.order);
+	return chapters.map((chapter, index) => ({
+		params: { id: chapter.id },
+		props: {
+			chapter,
+			prev: index > 0 ? chapters[index - 1] : null,
+			next: index < chapters.length - 1 ? chapters[index + 1] : null,
+		},
+	}));
+}
+
+const { chapter, prev, next } = Astro.props;
+const { Content } = await render(chapter);
+const base = import.meta.env.BASE_URL;
+const withBase = (path: string) =>
+	base === '/'
+		? path
+		: `${base.replace(/\/$/, '')}${path === '/' ? '/' : path}`;
+
+const navPrev = prev
+	? { title: prev.data.title, href: withBase(`/shiji/${prev.id}/`) }
+	: null;
+const navNext = next
+	? { title: next.data.title, href: withBase(`/shiji/${next.id}/`) }
+	: null;
+const indexHref = withBase('/shiji/');
+---
+
+<BaseLayout
+	title={`${chapter.data.title} · 史记白话讲`}
+	description={chapter.data.summary ?? chapter.data.title}
+>
+	<article class="prose">
+		<p class="meta">史记白话讲 · 第 {chapter.data.order} 篇</p>
+		<h1 class="section-title">{chapter.data.title}</h1>
+		<ChapterNav prev={navPrev} next={navNext} indexHref={indexHref} />
+		<Content />
+		<ChapterNav prev={navPrev} next={navNext} indexHref={indexHref} />
+	</article>
+</BaseLayout>

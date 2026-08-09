@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) =>
+	a.data.title.localeCompare(b.data.title, 'zh-CN'),
+);
+const base = import.meta.env.BASE_URL;
+const withBase = (path: string) =>
+	base === '/'
+		? path
+		: `${base.replace(/\/$/, '')}${path === '/' ? '/' : path}`;
+---
+
+<BaseLayout title="项目 · 张家兴" description="张家兴的项目">
+	<h1 class="section-title">项目</h1>
+	<p class="section-lead">做着玩或正在用的东西。</p>
+	<ul class="list">
+		{
+			projects.map((project) => (
+				<li>
+					<a href={project.data.url ?? withBase(`/projects/${project.id}/`)}>
+						<span class="list-title">{project.data.title}</span>
+						<span class="list-summary">
+							{project.data.status ? `${project.data.status} · ` : ''}
+							{project.data.summary}
+						</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</BaseLayout>
