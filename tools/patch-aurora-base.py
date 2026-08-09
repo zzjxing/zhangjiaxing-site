@@ -1,12 +1,14 @@
 """Rewrite Aurora SPA absolute paths for GitHub project Pages (subdir root)."""
 from __future__ import annotations
 
+import hashlib
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / 'public'
 BASE = '/zhangjiaxing-site'
+BASE_REL = 'zhangjiaxing-site'  # Vite preload helper prefixes "/" itself
 
 
 def patch_text(text: str) -> str:
@@ -16,20 +18,20 @@ def patch_text(text: str) -> str:
 	text = text.replace('history:m4("/")', f'history:m4("{BASE}/")')
 
 	# Vite preload helper is originally: function(e){return"/"+e}
-	# After we rewrite deps to "/zhangjiaxing-site/static/...", that becomes
-	# "//zhangjiaxing-site/..." (protocol-relative → wrong host → long hang).
-	# Make the helper idempotent for already-absolute paths.
-	text = text.replace(
-		'E7=function(e){return"/"+e.replace(/^\\//,"")}',
-		'E7=function(e){return"/"+e}',
-	)
-	text = text.replace(
+	# If deps already start with "/", that becomes "//host/..." (protocol-relative)
+	# and the browser tries https://zhangjiaxing-site/... — long hang, About never opens.
+	for old in (
 		'E7=function(e){return"/"+e}',
 		'E7=function(e){return"/"+e.replace(/^\\//,"")}',
+		'E7=function(e){return e.charAt(0)==="/"?e:"/"+e}',
+	):
+		text = text.replace(old, '__E7_PLACEHOLDER__')
+	text = text.replace(
+		'__E7_PLACEHOLDER__',
+		'E7=function(e){return e.charAt(0)==="/"?e:"/"+e}',
 	)
 
-	# Default covers / lazy assets baked into the SPA bundle
-	# Avoid double-prefixing if patch is re-run.
+	# Absolute asset paths used directly (img src, css url, etc.)
 	text = text.replace(f'"{BASE}/static/', '"__BASE_STATIC__/')
 	text = text.replace('"/static/', f'"{BASE}/static/')
 	text = text.replace('"__BASE_STATIC__/', f'"{BASE}/static/')
@@ -39,24 +41,24 @@ def patch_text(text: str) -> str:
 	text = text.replace("'__BASE_STATIC__/", f"'{BASE}/static/")
 
 	# Vite preload deps are quoted WITHOUT a leading slash: "static/js/xxx.js".
-	# On /about/ those resolve to /about/static/... and break the page.
-	text = text.replace(f'"{BASE}/static/js/', '"__BASE_STATIC_JS__/')
-	text = text.replace(f'"{BASE}/static/css/', '"__BASE_STATIC_CSS__/')
-	text = text.replace('"static/js/', f'"{BASE}/static/js/')
-	text = text.replace('"static/css/', f'"{BASE}/static/css/')
-	text = text.replace('"__BASE_STATIC_JS__/', f'"{BASE}/static/js/')
-	text = text.replace('"__BASE_STATIC_CSS__/', f'"{BASE}/static/css/')
+	# Keep them without a leading slash so E7's "/" + dep is correct:
+	# "zhangjiaxing-site/static/js/x" → "/zhangjiaxing-site/static/js/x"
+	text = text.replace(f'"{BASE_REL}/static/js/', '"__REL_STATIC_JS__/')
+	text = text.replace(f'"{BASE_REL}/static/css/', '"__REL_STATIC_CSS__/')
+	text = text.replace('"static/js/', f'"{BASE_REL}/static/js/')
+	text = text.replace('"static/css/', f'"{BASE_REL}/static/css/')
+	text = text.replace('"__REL_STATIC_JS__/', f'"{BASE_REL}/static/js/')
+	text = text.replace('"__REL_STATIC_CSS__/', f'"{BASE_REL}/static/css/')
 
-	# Occasional broken leftover: "static//886a749e.css" (file lives at static/*.css)
+	# Root-level css chunk: "static/886a749e.css"
 	text = re.sub(
-		rf'"static//([^"]+\.css)"',
-		rf'"{BASE}/static/\1"',
+		rf'"(?:static//|{re.escape(BASE_REL)}/static/|{re.escape(BASE)}/static/css/)(886a749e\.css)"',
+		rf'"{BASE_REL}/static/\1"',
 		text,
 	)
-	# If a previous patch wrongly nested that file under static/css/, put it back.
 	text = re.sub(
-		rf'"{re.escape(BASE)}/static/css/(886a749e\.css)"',
-		rf'"{BASE}/static/\1"',
+		r'"static/([^"/]+\.css)"',
+		rf'"{BASE_REL}/static/\1"',
 		text,
 	)
 
@@ -84,6 +86,21 @@ def patch_text(text: str) -> str:
 	return text
 
 
+def cache_bust_html(digest: str) -> int:
+	"""Point HTML script/link tags at patched assets with a content hash query."""
+	count = 0
+	pattern = re.compile(
+		rf'((?:src|href)=")({re.escape(BASE)}/static/[^"?]+)(?:\?[^"]*)?(")'
+	)
+	for path in PUBLIC.rglob('*.html'):
+		orig = path.read_text(encoding='utf-8')
+		text = pattern.sub(rf'\1\2?v={digest}\3', orig)
+		if text != orig:
+			path.write_text(text, encoding='utf-8')
+			count += 1
+	return count
+
+
 def main() -> None:
 	if not PUBLIC.exists():
 		raise SystemExit('public/ missing — run hexo generate first')
@@ -108,7 +125,6 @@ def main() -> None:
 	for path in PUBLIC.rglob('*.html'):
 		orig = path.read_text(encoding='utf-8')
 		text = patch_text(orig)
-		# html also uses src="/static/..." form without quotes variants already covered
 		text = text.replace(f'href="{BASE}/favicon.ico"', 'href="__BASE_FAVICON__"')
 		text = text.replace('href="/favicon.ico"', f'href="{BASE}/favicon.ico"')
 		text = text.replace('href="__BASE_FAVICON__"', f'href="{BASE}/favicon.ico"')
@@ -122,13 +138,25 @@ def main() -> None:
 			path.write_text(text, encoding='utf-8')
 			patched_html += 1
 
+	# Bust HTML→asset URLs so patched main bundle isn't stuck behind CDN cache.
+	main_js = next((PUBLIC / 'static' / 'js').glob('*.js'), None)
+	digest = '0'
+	if main_js is not None:
+		# Prefer the largest bundle (app entry); fall back to first.
+		main_js = max((PUBLIC / 'static' / 'js').glob('*.js'), key=lambda p: p.stat().st_size)
+		digest = hashlib.sha256(main_js.read_bytes()).hexdigest()[:10]
+	busted = cache_bust_html(digest)
+
 	# GitHub Pages SPA fallback for deep links
 	index = PUBLIC / 'index.html'
 	fallback = PUBLIC / '404.html'
 	if index.exists():
 		fallback.write_text(index.read_text(encoding='utf-8'), encoding='utf-8')
 
-	print(f'patched js={patched_js} css={patched_css} html={patched_html} base={BASE}')
+	print(
+		f'patched js={patched_js} css={patched_css} html={patched_html} '
+		f'bust={busted} v={digest} base={BASE}'
+	)
 
 
 if __name__ == '__main__':
