@@ -18,12 +18,20 @@ def patch_text(text: str) -> str:
 	# Avoid double-prefixing if patch is re-run.
 	text = text.replace(f'"{BASE}/static/', '"__BASE_STATIC__/')
 	text = text.replace('"/static/', f'"{BASE}/static/')
-	text = text.replace("'__BASE_STATIC__/", f"'{BASE}/static/")  # noop safety
 	text = text.replace('"__BASE_STATIC__/', f'"{BASE}/static/')
 
 	text = text.replace(f"'{BASE}/static/", "'__BASE_STATIC__/")
 	text = text.replace("'/static/", f"'{BASE}/static/")
 	text = text.replace("'__BASE_STATIC__/", f"'{BASE}/static/")
+
+	# Vite preload deps are quoted WITHOUT a leading slash: "static/js/xxx.js".
+	# On /about/ those resolve to /about/static/... and break the page.
+	text = text.replace(f'"{BASE}/static/js/', '"__BASE_STATIC_JS__/')
+	text = text.replace(f'"{BASE}/static/css/', '"__BASE_STATIC_CSS__/')
+	text = text.replace('"static/js/', f'"{BASE}/static/js/')
+	text = text.replace('"static/css/', f'"{BASE}/static/css/')
+	text = text.replace('"__BASE_STATIC_JS__/', f'"{BASE}/static/js/')
+	text = text.replace('"__BASE_STATIC_CSS__/', f'"{BASE}/static/css/')
 
 	# CSS url(/static/...) inside bundles
 	text = text.replace(f'url({BASE}/static/', 'url(__BASE_STATIC__/')

@@ -11,7 +11,7 @@ language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
-url: https://zzjxing.github.io/zhangjiaxing-site
+url: https://zzjxing.github.io/zhangjiaxing-site/
 root: /zhangjiaxing-site/
 permalink: /post/:name.html
 permalink_defaults:
