@@ -33,7 +33,7 @@ menu:
 theme:
   dark_mode: true
   profile_shape: rounded
-  feature: true
+  feature: false
   gradient:
     color_1: '#24c6dc'
     color_2: '#5433ff'

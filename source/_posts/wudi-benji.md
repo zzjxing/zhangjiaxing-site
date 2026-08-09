@@ -1,5 +1,4 @@
 ---
-feature: true
 title: 五帝本纪
 date: 2026-08-01 10:00:00
 categories:
