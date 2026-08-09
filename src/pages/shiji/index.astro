@@ -1,29 +1,81 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/common/Header.astro';
+import Footer from '@/components/common/Footer.astro';
+import Container from '@/components/ui/Container.astro';
+import GlassCard from '@/components/ui/GlassCard.astro';
+import { withBase } from '@/lib/url';
 
 const chapters = (await getCollection('shiji')).sort((a, b) => a.data.order - b.data.order);
-const base = import.meta.env.BASE_URL;
-const withBase = (path: string) =>
-	base === '/'
-		? path
-		: `${base.replace(/\/$/, '')}${path === '/' ? '/' : path}`;
 ---
 
-<BaseLayout title="史记白话讲 · zjx" description="按《史记》篇目顺序的白话详讲">
-	<h1 class="section-title">史记白话讲</h1>
-	<ul class="list">
-		{
-			chapters.map((chapter) => (
-				<li>
-					<a href={withBase(`/shiji/${chapter.id}/`)}>
-						<span class="list-title">
-							{String(chapter.data.order).padStart(2, '0')} {chapter.data.title}
-						</span>
-						{chapter.data.summary ? <span class="list-summary">{chapter.data.summary}</span> : null}
-					</a>
-				</li>
-			))
-		}
-	</ul>
+<BaseLayout title="史记白话讲">
+	<Header />
+	<main id="main" tabindex="-1" class="main-content">
+		<Container size="lg">
+			<header class="archive-header">
+				<h1>史记白话讲</h1>
+			</header>
+			<div class="chapter-list">
+				{
+					chapters.map((chapter) => (
+						<GlassCard
+							href={withBase(`/shiji/${chapter.id}/`)}
+							padding="lg"
+							radius="xl"
+							class="chapter-card"
+						>
+							<span class="chapter-order">{String(chapter.data.order).padStart(2, '0')}</span>
+							<span class="chapter-title">{chapter.data.title}</span>
+							{chapter.data.summary ? (
+								<span class="chapter-summary">{chapter.data.summary}</span>
+							) : null}
+						</GlassCard>
+					))
+				}
+			</div>
+		</Container>
+	</main>
+	<Footer />
 </BaseLayout>
+
+<style>
+	.main-content {
+		padding: 4rem 0 5rem;
+	}
+
+	.archive-header {
+		margin-bottom: 1.5rem;
+	}
+
+	.archive-header h1 {
+		margin: 0;
+	}
+
+	.chapter-list {
+		display: grid;
+		gap: 0.9rem;
+	}
+
+	.chapter-card {
+		display: grid;
+		gap: 0.35rem;
+	}
+
+	.chapter-order {
+		font-size: 0.85rem;
+		opacity: 0.65;
+		letter-spacing: 0.08em;
+	}
+
+	.chapter-title {
+		font-size: 1.35rem;
+		font-weight: 650;
+	}
+
+	.chapter-summary {
+		opacity: 0.75;
+		font-size: 0.95rem;
+	}
+</style>
