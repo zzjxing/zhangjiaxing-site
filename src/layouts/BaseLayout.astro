@@ -6,7 +6,7 @@ interface Props {
 	description?: string;
 }
 
-const { title, description = '张家兴的个人站点：笔记、项目与史记白话讲。' } = Astro.props;
+const { title, description = 'Personal site: notes, projects, and vernacular Shiji readings.' } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const withBase = (path: string) => {
 	const clean = path.startsWith('/') ? path : `/${path}`;
@@ -45,7 +45,7 @@ const isCurrent = (key: string, href: string) => {
 	<body>
 		<div class="site-shell">
 			<header class="site-header">
-				<a class="brand" href={withBase('/')}>张家兴</a>
+				<a class="brand" href={withBase('/')}>zzjxing</a>
 				<nav class="nav" aria-label="主导航">
 					{
 						links.map((link) => (
@@ -60,7 +60,7 @@ const isCurrent = (key: string, href: string) => {
 				<slot />
 			</main>
 			<footer class="site-footer">
-				<p>张家兴 · 用 Markdown 写下阅读与记录 · Astro + GitHub Pages</p>
+				<p>zzjxing · Markdown notes & reading · Astro + GitHub Pages</p>
 			</footer>
 		</div>
 	</body>

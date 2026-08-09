@@ -1,6 +1,6 @@
-# zhangjiaxing-site
+﻿# zhangjiaxing-site
 
-张家兴的个人站点：关于、项目、笔记、《史记》白话讲。  
+zzjxing 的个人站点：关于、项目、笔记、《史记》白话讲。  
 技术栈：**Astro** + **GitHub Pages**。
 
 线上地址（部署后）：

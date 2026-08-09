@@ -14,7 +14,7 @@ const { note } = Astro.props;
 const { Content } = await render(note);
 ---
 
-<BaseLayout title={`${note.data.title} · 张家兴`} description={note.data.summary}>
+<BaseLayout title={`${note.data.title} · zzjxing`} description={note.data.summary}>
 	<article class="prose">
 		<p class="meta">{note.data.date.toISOString().slice(0, 10)}</p>
 		<h1 class="section-title">{note.data.title}</h1>
