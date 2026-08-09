@@ -1,0 +1,130 @@
+#! ---------------------------------------------------------------
+#! Aurora Theme for Hexo
+#! ---------------------------------------------------------------
+
+site:
+  subtitle: zjx
+  author: zjx
+  nick: zjx
+  description: zjx
+  link: '/'
+  language: zh-CN
+  multi_language: true
+  logo:
+  avatar:
+  beian:
+    number: ''
+    link: ''
+  police_beian:
+    number: ''
+    link: ''
+  started_date: 2026-08-10
+  pathSlug: 'slug'
+
+authors:
+
+menu:
+  About: true
+  Tags: true
+  Archives: true
+  Friends: false
+
+theme:
+  dark_mode: true
+  profile_shape: rounded
+  feature: true
+  gradient:
+    color_1: '#24c6dc'
+    color_2: '#5433ff'
+    color_3: '#ff0099'
+
+socials:
+  customs:
+    github:
+      icon: fab fa-github
+      link: https://github.com/zzjxing
+
+site_meta:
+  cdn: cn
+  favicon:
+  description: zjx
+  keywords: zjx,史记,博客
+  author: zjx
+
+gitalk:
+  enable: false
+  autoExpand: true
+  clientID: ''
+  clientSecret: ''
+  repo: ''
+  owner: ''
+  admin: ['']
+  id: uid
+  language: zh-CN
+  distractionFreeMode: true
+  recentComment: false
+  proxy: ''
+
+valine:
+  enable: false
+  app_id:
+  app_key:
+  avatar: ''
+  placeholder: Leave your thoughts behind~
+  visitor: true
+  lang: zh-CN
+  avatarForce: false
+  meta: ['nick', 'mail']
+  requiredFields: ['nick', 'mail']
+  admin: ''
+  recentComment: false
+
+twikoo:
+  enable: false
+  recentComment: false
+  envId: ''
+  lang: 'zh-CN'
+
+waline:
+  enable: false
+  recentComment: false
+  reaction: false
+  login: 'disable'
+  meta: ['nick', 'mail']
+  requiredMeta: ['nick', 'mail']
+  commentSorting: 'latest'
+  wordLimit: 0
+  imageUploader: false
+  pageSize: 10
+  serverURL: ''
+
+busuanzi:
+  enable: false
+
+copy_protection:
+  enable: false
+  author:
+    cn: 作者
+    en: Author
+  link:
+    cn: 本文来自于
+    en: Article is from
+  license:
+    cn: 博客内容遵循 署名-非商业性使用-相同方式共享 4.0 国际 (CC BY-NC-SA 4.0) 协议
+    en: This content is shared under the CC BY-NC-SA 4.0 protocol (Non-Commercial)
+
+aurora_bot:
+  enable: false
+  locale: zh-CN
+  bot_type: dia
+  tips:
+
+injects:
+  scripts:
+  css:
+
+footer_links:
+
+shiki:
+  enable: true
+  backgroundColor: '#1a1a1a'
