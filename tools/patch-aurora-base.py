@@ -43,6 +43,17 @@ def patch_text(text: str) -> str:
 	text = text.replace('"/favicon.ico"', f'"{BASE}/favicon.ico"')
 	text = text.replace('"__BASE_FAVICON__"', f'"{BASE}/favicon.ico"')
 
+	# Home "horizontal article" hero (shown when theme.feature is false).
+	# Remove it and keep the first post in the normal card grid.
+	text = text.replace(
+		':(O(),be(l,{key:1,class:"mb-8",data:e.posts.data[0]||{}},null,8,["data"]))',
+		':fe("",!0)',
+	)
+	text = text.replace(
+		':(O(!0),$(me,{key:1},Ue(e.posts.data,(T,P)=>(O(),$(me,{key:T.slug},[P!==0?(O(),$("li",c_,[R(h,{data:T},null,8,["data"])])):fe("",!0)],64))),128))',
+		':(O(!0),$(me,{key:1},Ue(e.posts.data,T=>(O(),$("li",{key:T.slug},[R(h,{data:T},null,8,["data"])]))),128))',
+	)
+
 	return text
 
 
