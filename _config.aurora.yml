@@ -10,8 +10,9 @@ site:
   link: '/'
   language: zh-CN
   multi_language: true
-  logo:
-  avatar:
+  # Project Pages lives under /zhangjiaxing-site/ — use absolute path with that prefix.
+  logo: /zhangjiaxing-site/img/avatar.svg
+  avatar: /zhangjiaxing-site/img/avatar.svg
   beian:
     number: ''
     link: ''
